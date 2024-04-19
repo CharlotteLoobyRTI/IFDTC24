@@ -1,0 +1,44 @@
+---
+title: "Exercise 1"
+author: "Charlotte Looby"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(knitr)
+
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r lookup ACS}
+
+#Get total population in occupied housing units, owned and rented, for counties in Ohio
+
+lookup_acs <- load_variables(2022, "acs5", cache=TRUE)
+
+ohio_income <- get_acs(geography = "county",
+                    state = "Ohio",
+                    survey = "acs5", 
+                    year = 2022,
+                    variables = "B06011_001") 
+
+```
+
+## Income in the Buckeye State
+
+There are people who make money in Ohio and they are present in all `r nrow(ohio_income)` counties (Table 1).
+
+```{r Make a table with percentages of tenure}
+ohio_income %>%
+  select(NAME, estimate) %>%
+  arrange(estimate) %>%
+  kable(caption = "Table 1: Ohio Counties by Ascending Median Income",
+        col.names = c("County", "Median Income (US$)"),
+        digits = 1, 
+        format.args = list(big.mark = ","))
+
+```
+
