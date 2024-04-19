@@ -1,0 +1,96 @@
+---
+title: "tidycensus Example"
+author: "Charlotte Looby"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(knitr)
+
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+#One day you might want to get a census API key, if doing more than 500 pulls a day
+census_api_key("asvj928734okjdv0d82034jlkds09sdf82w34rj2349", overwrite=TRUE, install = TRUE)
+```
+
+## Median age by State, Census 2020
+
+```{r lookup decennial}
+
+#Check out 2020 Demographic and Housing Characteristics File
+
+lookup_decennial <- load_variables(2020, "dhc", cache=TRUE)
+
+#Get median age for all people
+
+age20 <- get_decennial(geography = "state", 
+                       variables = "P13_001N", 
+                       year = 2020,
+                       sumfile = "dhc")
+
+age20_sorted <- age20 %>%
+  arrange(value)
+```
+
+The state with the lowest median age is `r age20_sorted$NAME[1]`. The state with the highest median age is `r age20_sorted$NAME[nrow(age20_sorted)]`.
+
+Display graph with default parameters
+
+```{r median age graph}
+age20 %>%
+  ggplot(aes(x = value, y = reorder(NAME, value))) + 
+  geom_point() +
+  labs(x="Median age", y="State", title="Median age in each State")
+```
+
+Display graph with the figure dimensions adjusted
+
+```{r median age graph - fixed dimensions, fig.width=8, fig.height=8}
+age20 %>%
+  ggplot(aes(x = value, y = reorder(NAME, value))) + 
+  geom_point() +
+  labs(x="Median age", y="State", title="Median age in each State")
+```
+
+## Percent renters in population of Ohio counties
+
+```{r lookup ACS}
+
+#Get total population in occupied housing units, owned and rented, for counties in Ohio
+
+lookup_acs <- load_variables(2022, "acs5", cache=TRUE)
+
+ohio_pop <- get_acs(geography = "county",
+                    state = "Ohio",
+                    survey = "acs5", 
+                    year = 2022,
+                    variables = c("B25008_002", "B25008_003")) 
+
+```
+
+```{r Make a table with percentages of tenure}
+ohio_pop_clean <- ohio_pop %>%
+  select(-moe) %>%
+  spread(variable, estimate) %>%
+  mutate(POP_TOT = B25008_002 + B25008_003,
+         PCT_OWN = round(B25008_002/POP_TOT*100, 1),
+         PCT_RENT = round(B25008_003/POP_TOT*100, 1)) %>%
+  arrange(-PCT_RENT) %>%
+  select(NAME, PCT_OWN, PCT_RENT) 
+
+ohio_pop_clean %>%
+  kable(caption = "Ohio Counties by Descending Population Percentage in Rented Housing Units",
+        col.names = c("County", "Percent Own", "Percent Rent"))
+
+```
+
+```{r make a density plot}
+ohio_pop_clean %>%
+  ggplot(aes(x = PCT_RENT)) +
+  geom_density(fill="skyblue") + 
+  labs(x="Percent population rents", y="Density", title="Density of Percent Renters in Ohio Counties")
+```
+
