@@ -13,7 +13,7 @@ library(knitr)
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 
 #One day you might want to get a census API key, if doing more than 500 pulls a day
-census_api_key("asvj928734okjdv0d82034jlkds09sdf82w34rj2349", overwrite=TRUE, install = TRUE)
+census_api_key("###", overwrite=TRUE, install = TRUE)
 ```
 
 ## Median age by State, Census 2020
