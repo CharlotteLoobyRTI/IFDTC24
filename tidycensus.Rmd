@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 
 #One day you might want to get a census API key, if doing more than 500 pulls a day
 census_api_key("###", overwrite=TRUE, install = TRUE)
+Sys.getenv("CENSUS_API_KEY")
+readRenviron("~/.Renviron")
 ```
 
 ## Median age by State, Census 2020
